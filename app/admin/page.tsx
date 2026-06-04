@@ -1,0 +1,360 @@
+import { createClient } from '@/lib/supabase/server'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { redirect } from 'next/navigation'
+import { isAdmin } from '@/lib/utils/auth'
+import { formatCurrency, formatDate } from '@/lib/utils/format'
+import Link from 'next/link'
+import Image from 'next/image'
+import type { Metadata } from 'next'
+import { Admin3DPanel } from '@/components/admin/Admin3DPanel'
+
+export const metadata: Metadata = { title: 'Admin — Dukaanify' }
+
+export default async function AdminPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  // Admin-only access: redirect non-admins to dashboard
+  if (!user || !isAdmin(user.email)) redirect('/dashboard')
+
+  const service = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const [
+    { data: allBusinesses },
+    { data: allProfiles },
+    { data: allOrders },
+  ] = await Promise.all([
+    service.from('businesses').select('id, name, slug, currency, is_active, created_at, owner_id').order('created_at', { ascending: false }),
+    service.from('profiles').select('id, email, full_name, created_at').order('created_at', { ascending: false }),
+    service.from('orders').select('business_id, total_amount, status, created_at'),
+  ])
+
+  const totalRevenue = (allOrders ?? []).filter((o) => o.status === 'delivered').reduce((s, o) => s + Number(o.total_amount), 0)
+  const pendingOrders = (allOrders ?? []).filter((o) => o.status === 'pending').length
+
+  const profileMap = new Map((allProfiles ?? []).map((p) => [p.id, p]))
+
+  const orderStatsByBusiness = new Map<string, { count: number; revenue: number }>()
+  for (const o of allOrders ?? []) {
+    const e = orderStatsByBusiness.get(o.business_id) ?? { count: 0, revenue: 0 }
+    e.count += 1
+    if (o.status === 'delivered') e.revenue += Number(o.total_amount)
+    orderStatsByBusiness.set(o.business_id, e)
+  }
+
+  const businessesByOwner = new Map<string, typeof allBusinesses>()
+  for (const b of allBusinesses ?? []) {
+    const e = businessesByOwner.get(b.owner_id) ?? []
+    e.push(b)
+    businessesByOwner.set(b.owner_id, e)
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-white flex">
+      {/* ── Sidebar ── */}
+      <aside className="w-60 shrink-0 bg-slate-900 border-r border-slate-800 flex flex-col h-screen sticky top-0">
+        {/* Logo */}
+        <div className="px-5 py-5 border-b border-slate-800">
+          <Link href="/admin" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+            <Image
+              src="/logo.svg"
+              alt="Dukaanify"
+              width={32}
+              height={32}
+              className="w-8 h-8"
+            />
+            <div>
+              <p className="font-bold text-white text-sm">Dukaanify</p>
+              <p className="text-slate-400 text-xs">Admin Console</p>
+            </div>
+          </Link>
+        </div>
+
+        {/* Nav */}
+        <nav className="flex-1 px-3 py-4 space-y-0.5">
+          <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Overview</p>
+          <SideNavItem href="/admin" icon={<GridIcon />} label="Dashboard" active />
+          <SideNavItem href="/admin/payments" icon={<CreditCardIcon />} label="Payments" />
+          <SideNavItem href="/admin/upgraded-plans" icon={<StarIcon />} label="Upgraded Plans" />
+          <SideNavItem href="/admin/clients" icon={<UsersIcon />} label="Clients" />
+          <SideNavItem href="/admin/businesses" icon={<StoreIcon />} label="Businesses" />
+          <SideNavItem href="/admin/orders" icon={<OrderIcon />} label="Orders" />
+        </nav>
+
+        {/* Bottom */}
+        <div className="px-3 py-4 border-t border-slate-800 space-y-1">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+          >
+            <ArrowLeftIcon className="w-4 h-4" />
+            Back to App
+          </Link>
+        </div>
+      </aside>
+
+      {/* ── Main content ── */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top bar */}
+        <header className="bg-slate-900 border-b border-slate-800 flex items-center justify-between px-6 shrink-0" style={{ height: '56px' }}>
+          <div>
+            <h1 className="font-bold text-white" style={{ fontSize: '15px', margin: 0, lineHeight: 1.4 }}>Platform Overview</h1>
+            <p className="text-slate-400" style={{ fontSize: '11px', margin: 0 }}>Real-time data across all stores</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-slate-400" style={{ fontSize: '11px' }}>Live</span>
+          </div>
+        </header>
+
+        <div className="flex-1 overflow-auto p-6 space-y-6">
+
+          {/* ── 3D Admin Panel ── */}
+          <Admin3DPanel />
+
+          {/* ── Clients table ── */}
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <UsersIcon className="w-4 h-4 text-slate-400" />
+                <h2 className="font-semibold text-white">Clients</h2>
+                <span className="bg-slate-700 text-slate-300 text-xs font-bold px-2 py-0.5 rounded-full">
+                  {allProfiles?.length ?? 0}
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+              {(allProfiles ?? []).length === 0 ? (
+                <p className="px-5 py-10 text-center text-sm text-slate-500">No clients yet</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-800">
+                        <Th>Client</Th>
+                        <Th>Email</Th>
+                        <Th>Businesses</Th>
+                        <Th>Joined</Th>
+                        <Th>Role</Th>
+                        <Th />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(allProfiles ?? []).map((profile) => {
+                        const userBiz = businessesByOwner.get(profile.id) ?? []
+                        const admin = isAdmin(profile.email)
+                        const initials = (profile.full_name ?? profile.email ?? '?')[0].toUpperCase()
+                        return (
+                          <tr key={profile.id} className="border-b border-slate-800/50 hover:bg-slate-800/40 transition-colors group">
+                            <td className="px-5 py-3.5">
+                              <Link href={`/admin/client/${profile.id}`} className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
+                                  <span className="text-indigo-400 font-bold text-xs">{initials}</span>
+                                </div>
+                                <span className="font-medium text-white group-hover:text-indigo-400 transition-colors">
+                                  {profile.full_name ?? 'No name'}
+                                </span>
+                              </Link>
+                            </td>
+                            <td className="px-5 py-3.5 text-slate-400 text-xs">{profile.email}</td>
+                            <td className="px-5 py-3.5">
+                              <span className="font-semibold text-white">{userBiz.length}</span>
+                              {userBiz.length > 0 && (
+                                <span className="text-xs text-slate-500 ml-1.5">
+                                  {userBiz.map((b) => b?.name).join(', ')}
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-5 py-3.5 text-slate-500 text-xs">{formatDate(profile.created_at)}</td>
+                            <td className="px-5 py-3.5">
+                              {admin ? (
+                                <span className="bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-xs font-bold px-2.5 py-0.5 rounded-full">Admin</span>
+                              ) : (
+                                <span className="bg-slate-700 text-slate-400 text-xs font-medium px-2.5 py-0.5 rounded-full">Client</span>
+                              )}
+                            </td>
+                            <td className="px-5 py-3.5 text-right">
+                              <Link
+                                href={`/admin/client/${profile.id}`}
+                                className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                View →
+                              </Link>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* ── Businesses table ── */}
+          <section>
+            <div className="flex items-center gap-2 mb-3">
+              <StoreIcon className="w-4 h-4 text-slate-400" />
+              <h2 className="font-semibold text-white">Businesses</h2>
+              <span className="bg-slate-700 text-slate-300 text-xs font-bold px-2 py-0.5 rounded-full">
+                {allBusinesses?.length ?? 0}
+              </span>
+            </div>
+
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+              {(allBusinesses ?? []).length === 0 ? (
+                <p className="px-5 py-10 text-center text-sm text-slate-500">No businesses yet</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-800">
+                        <Th>Business</Th>
+                        <Th>Owner</Th>
+                        <Th>Orders</Th>
+                        <Th>Revenue</Th>
+                        <Th>Status</Th>
+                        <Th>Store</Th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(allBusinesses ?? []).map((biz) => {
+                        const owner = profileMap.get(biz.owner_id)
+                        const stats = orderStatsByBusiness.get(biz.id) ?? { count: 0, revenue: 0 }
+                        return (
+                          <tr key={biz.id} className="border-b border-slate-800/50 hover:bg-slate-800/40 transition-colors">
+                            <td className="px-5 py-3.5">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-violet-500/20 border border-violet-500/30 flex items-center justify-center shrink-0">
+                                  <span className="text-violet-400 font-bold text-xs">{biz.name[0].toUpperCase()}</span>
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-white">{biz.name}</p>
+                                  <p className="text-xs text-slate-500">/{biz.slug}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-5 py-3.5 text-slate-400 text-xs">{owner?.email ?? '—'}</td>
+                            <td className="px-5 py-3.5">
+                              <span className="font-semibold text-white">{stats.count}</span>
+                            </td>
+                            <td className="px-5 py-3.5">
+                              <span className="font-semibold text-emerald-400">
+                                {formatCurrency(stats.revenue, biz.currency ?? 'PKR')}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3.5">
+                              <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
+                                biz.is_active
+                                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                                  : 'bg-slate-700 text-slate-400 border-slate-600'
+                              }`}>
+                                {biz.is_active ? '● Active' : '○ Inactive'}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3.5">
+                              <a
+                                href={`/store/${biz.slug}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1"
+                              >
+                                View ↗
+                              </a>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Sub-components ────────────────────────────────────────────
+
+function Th({ children }: { children?: React.ReactNode }) {
+  return (
+    <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+      {children}
+    </th>
+  )
+}
+
+function SideNavItem({ href, icon, label, active }: {
+  href: string; icon: React.ReactNode; label: string; active?: boolean
+}) {
+  return (
+    <Link
+      href={href}
+      className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+        active
+          ? 'bg-indigo-600 text-white font-semibold'
+          : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+      }`}
+    >
+      <span className={active ? 'text-white' : 'text-slate-500'}>{icon}</span>
+      {label}
+    </Link>
+  )
+}
+
+function KpiCard({ label, value, sub, icon, accent }: {
+  label: string; value: string | number; sub: string; icon: React.ReactNode
+  accent: 'indigo' | 'violet' | 'amber' | 'emerald'
+}) {
+  const colors = {
+    indigo:  { bg: 'bg-indigo-500/10',  border: 'border-indigo-500/20',  text: 'text-indigo-400',  val: 'text-indigo-300' },
+    violet:  { bg: 'bg-violet-500/10',  border: 'border-violet-500/20',  text: 'text-violet-400',  val: 'text-violet-300' },
+    amber:   { bg: 'bg-amber-500/10',   border: 'border-amber-500/20',   text: 'text-amber-400',   val: 'text-amber-300' },
+    emerald: { bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', text: 'text-emerald-400', val: 'text-emerald-300' },
+  }
+  const c = colors[accent]
+  return (
+    <div className={`bg-slate-900 border ${c.border} rounded-2xl p-5`}>
+      <div className={`w-9 h-9 rounded-xl ${c.bg} flex items-center justify-center mb-3`}>
+        <span className={c.text}>{icon}</span>
+      </div>
+      <p className={`text-2xl font-bold ${c.val}`}>{value}</p>
+      <p className="text-sm text-slate-400 mt-0.5 font-medium">{label}</p>
+      <p className="text-xs text-slate-600 mt-0.5">{sub}</p>
+    </div>
+  )
+}
+
+// Icons
+function GridIcon({ className }: { className?: string }) {
+  return <svg className={className ?? 'w-4 h-4'} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+}
+function UsersIcon({ className }: { className?: string }) {
+  return <svg className={className ?? 'w-4 h-4'} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>
+}
+function StoreIcon({ className }: { className?: string }) {
+  return <svg className={className ?? 'w-4 h-4'} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" /></svg>
+}
+function OrderIcon({ className }: { className?: string }) {
+  return <svg className={className ?? 'w-4 h-4'} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" /></svg>
+}
+function RevenueIcon({ className }: { className?: string }) {
+  return <svg className={className ?? 'w-4 h-4'} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+}
+function CreditCardIcon({ className }: { className?: string }) {
+  return <svg className={className ?? 'w-4 h-4'} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008v-.008zm0-8.25h.008v.008h-.008v-.008zm2.25 0h.008v.008h-.008v-.008zm2.25 0h.008v.008h-.008v-.008zm6-2.25c0-1.657-1.343-3-3-3s-3 1.343-3 3m15.75 6.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" /></svg>
+}
+function StarIcon({ className }: { className?: string }) {
+  return <svg className={className ?? 'w-4 h-4'} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.734 20.84a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>
+}
+function ArrowLeftIcon({ className }: { className?: string }) {
+  return <svg className={className ?? 'w-4 h-4'} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
+}

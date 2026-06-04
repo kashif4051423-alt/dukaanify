@@ -1,0 +1,16 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="95" fill="#7C3AED" opacity="0.1" stroke="#7C3AED" stroke-width="2"/>
+  
+  <!-- Main D shape -->
+  <g>
+    <!-- Vertical line -->
+    <rect x="60" y="50" width="12" height="100" fill="#7C3AED" rx="6"/>
+    
+    <!-- Curved right side -->
+    <path d="M 72 50 Q 120 50 120 100 Q 120 150 72 150" fill="none" stroke="#7C3AED" stroke-width="12" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Accent dot -->
+  <circle cx="135" cy="75" r="6" fill="#7C3AED" opacity="0.6"/>
+</svg>
