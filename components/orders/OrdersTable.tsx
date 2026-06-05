@@ -63,7 +63,38 @@ export function OrdersTable({ orders, businessSlug, currency }: Props) {
 export async function OrderDetailModal({ orderId, businessSlug, currency }: { orderId: string, businessSlug: string, currency: string }) {
   const supabase = await createClient()
   
-  const { data: order } = await supabase
+  // Define order type from Supabase query
+  type OrderDetail = {
+    id: string
+    status: string
+    total_amount: number
+    created_at: string
+    notes: string | null
+    customers: {
+      name: string
+      email: string | null
+      phone: string | null
+      address?: string | null
+    } | null
+    businesses: {
+      name: string
+      slug: string
+      whatsapp_number?: string | null
+      jazzcash_number?: string | null
+      easypaisa_number?: string | null
+      sadapay_number?: string | null
+    } | null
+    order_items: Array<{
+      id: string
+      quantity: number
+      unit_price: number
+      products: {
+        name: string
+      } | null
+    }> | null
+  }
+  
+  const { data: orderData } = await supabase
     .from('orders')
     .select(`
       *,
@@ -72,6 +103,8 @@ export async function OrderDetailModal({ orderId, businessSlug, currency }: { or
     `)
     .eq('id', orderId)
     .single()
+
+  const order = (orderData as unknown as OrderDetail) ?? null
 
   if (!order) return null
 
