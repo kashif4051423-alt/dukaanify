@@ -37,7 +37,7 @@ export default async function BusinessOverviewPage({ params }: Props) {
     { count: activeProductCount },
     { count: orderCount },
     { count: customerCount },
-    { data: allOrders },
+    { data: allOrders }: { data: any[] | null },
     { data: recentOrdersRaw },
   ] = await Promise.all([
     supabase.from('products').select('*', { count: 'exact', head: true }).eq('business_id', business.id),
