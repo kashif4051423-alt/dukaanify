@@ -37,7 +37,7 @@ export default async function BusinessOverviewPage({ params }: Props) {
     { count: activeProductCount },
     { count: orderCount },
     { count: customerCount },
-    { data: allOrders }: { data: any[] | null },
+    { data: allOrders },
     { data: recentOrdersRaw },
   ] = await Promise.all([
     supabase.from('products').select('*', { count: 'exact', head: true }).eq('business_id', business.id),
@@ -48,8 +48,11 @@ export default async function BusinessOverviewPage({ params }: Props) {
     supabase.from('orders').select('id, status, total_amount, created_at, customers(name, phone)').eq('business_id', business.id).order('created_at', { ascending: false }).limit(6),
   ])
 
+  // ── Type the orders ─────────────────────────────────────────
+  const typedOrders: any[] = (allOrders as any) ?? []
+
   // ── Revenue calculations (optimized) ──────────────────────
-  const orders = allOrders ?? []
+  const orders = typedOrders
   const totalRevenue = orders.reduce((s, o) => s + Number(o.total_amount), 0)
   const deliveredRevenue = orders.filter((o) => o.status === 'delivered').reduce((s, o) => s + Number(o.total_amount), 0)
   const pendingRevenue = orders.filter((o) => ['pending', 'confirmed', 'processing', 'shipped'].includes(o.status)).reduce((s, o) => s + Number(o.total_amount), 0)
