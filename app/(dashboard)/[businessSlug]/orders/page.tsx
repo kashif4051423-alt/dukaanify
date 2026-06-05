@@ -181,10 +181,7 @@ export default async function OrdersPage({ params, searchParams }: Props) {
   )
 }
 
-function computeStats(
-  orders: Array<{ status: string; total_amount: number; created_at: string }>,
-  currency: string
-) {
+function computeStats(orders: Array<{ status: string; total_amount: number; created_at: string }>, currency: string) {
   const total = orders.length
   const revenue = orders
     .filter((o) => o.status === 'delivered')
