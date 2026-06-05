@@ -2,22 +2,12 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { OrdersTable } from '@/components/orders/OrdersTable'
 import { OrderFilters } from '@/components/orders/OrderFilters'
-import { formatCurrency, formatDate } from '@/lib/utils/format'
+import { formatCurrency } from '@/lib/utils/format'
 import type { Metadata } from 'next'
 
 interface Props {
   params: Promise<{ businessSlug: string }>
   searchParams: Promise<{ status?: string }>
-}
-
-// ── Order type definition for TypeScript ──
-type Order = {
-  id: string
-  status: string
-  total_amount: number
-  created_at: string
-  customer_id: string
-  business_id: string
 }
 
 export const metadata: Metadata = { title: 'Orders — Dukaanify' }
@@ -192,7 +182,7 @@ export default async function OrdersPage({ params, searchParams }: Props) {
 }
 
 function computeStats(
-  orders: Order[],
+  orders: Array<{ status: string; total_amount: number; created_at: string }>,
   currency: string
 ) {
   const total = orders.length
