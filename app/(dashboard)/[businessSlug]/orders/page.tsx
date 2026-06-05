@@ -10,6 +10,16 @@ interface Props {
   searchParams: Promise<{ status?: string }>
 }
 
+// ── Order type definition for TypeScript ──
+type Order = {
+  id: string
+  status: string
+  total_amount: number
+  created_at: string
+  customer_id: string
+  business_id: string
+}
+
 export const metadata: Metadata = { title: 'Orders — Dukaanify' }
 
 export default async function OrdersPage({ params, searchParams }: Props) {
@@ -28,16 +38,6 @@ export default async function OrdersPage({ params, searchParams }: Props) {
   if (!business) notFound()
 
   const today = new Date().toISOString().split('T')[0]
-
-  // ── Type definition for orders from Supabase ──
-  type Order = {
-    id: string
-    status: string
-    total_amount: number
-    created_at: string
-    customer_id: string
-    business_id: string
-  }
 
   // ── Optimized: Single query with nested joins (no N+1) ──
   let query = supabase
@@ -99,7 +99,7 @@ export default async function OrdersPage({ params, searchParams }: Props) {
     .select('status, total_amount, created_at')
     .eq('business_id', business.id)
 
-  const stats = computeStats((allOrders ?? []) as Order[], business.currency)
+  const stats = computeStats(allOrders ?? [], business.currency)
 
   // ── Stats for today only ──
   const todayDateFilter = (allOrders ?? []).filter((o) => o.created_at.startsWith(today))
