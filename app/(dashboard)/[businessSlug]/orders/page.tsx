@@ -1,3 +1,4 @@
+// fixed
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { OrdersTable } from '@/components/orders/OrdersTable'
