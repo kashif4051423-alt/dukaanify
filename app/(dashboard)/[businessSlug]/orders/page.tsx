@@ -86,7 +86,7 @@ export default async function OrdersPage({ params, searchParams }: Props) {
   // ── Stats: Fetch all orders for stats calculation ──
   const { data: allOrders } = await supabase
     .from('orders')
-    .select('status, total_amount')
+    .select('status, total_amount, created_at')
     .eq('business_id', business.id)
 
   const stats = computeStats(allOrders ?? [], business.currency)
@@ -182,7 +182,7 @@ export default async function OrdersPage({ params, searchParams }: Props) {
 }
 
 function computeStats(
-  orders: Array<{ status: string; total_amount: number }>,
+  orders: Array<{ status: string; total_amount: number; created_at: string }>,
   currency: string
 ) {
   const total = orders.length
