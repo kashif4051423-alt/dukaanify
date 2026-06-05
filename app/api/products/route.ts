@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       .from('products')
       .select('*', { count: 'exact', head: true })
       .eq('business_id', businessId)
-      .eq(...(onlyActive ? ['is_active', true] : ['is_active', true])) // Always active for now
+      .eq('is_active', true)
 
     // Get paginated products
     let query = supabase

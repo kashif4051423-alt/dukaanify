@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import { notFound } from 'next/navigation'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
 import type { OrderStatus } from '@/types/models'
 
@@ -12,8 +11,24 @@ export default async function CustomerOrdersPage() {
     return <div className="min-h-screen flex items-center justify-center"><p>Please log in to view your orders.</p></div>
   }
 
+  // Define order type with proper Supabase response structure
+  type OrderWithBusiness = {
+    id: string
+    status: string
+    total_amount: number
+    payment_method: string
+    notes: string | null
+    created_at: string
+    businesses: {
+      id: string
+      name: string
+      slug: string
+      logo_url: string | null
+    }
+  }
+
   // Get customer's orders with business info
-  const { data: orders, error } = await supabase
+  const { data: ordersData, error } = await supabase
     .from('orders')
     .select(`
       id,
@@ -31,6 +46,9 @@ export default async function CustomerOrdersPage() {
     `)
     .eq('customer_id', user.id)
     .order('created_at', { ascending: false })
+
+  // Cast to proper type
+  const orders = (ordersData as unknown as OrderWithBusiness[]) ?? []
 
   if (error) {
     console.error('Error fetching customer orders:', error)
@@ -66,14 +84,14 @@ export default async function CustomerOrdersPage() {
       acc[business.id].orders.push(order)
     }
     return acc
-  }, {} as Record<string, { business: any; orders: any[] }>)
+  }, {} as Record<string, { business: OrderWithBusiness['businesses']; orders: OrderWithBusiness[] }>)
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Your Orders</h1>
 
-        {Object.entries(ordersByBusiness).map(([businessId, { business, orders }]) => (
+        {Object.entries(ordersByBusiness).map(([businessId, { business, orders: businessOrders }]) => (
           <div key={businessId} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-6">
             {/* Business Header */}
             <div className="bg-indigo-50 px-6 py-4 border-b border-indigo-100 flex items-center gap-3">
@@ -92,13 +110,13 @@ export default async function CustomerOrdersPage() {
               )}
               <div>
                 <h2 className="font-bold text-gray-900">{business.name}</h2>
-                <p className="text-xs text-gray-500">{orders.length} order{orders.length !== 1 && 's'}</p>
+                <p className="text-xs text-gray-500">{businessOrders.length} order{businessOrders.length !== 1 && 's'}</p>
               </div>
             </div>
 
             {/* Orders List */}
             <div className="divide-y divide-gray-100">
-              {orders.map((order) => (
+              {businessOrders.map((order) => (
                 <OrderCard key={order.id} order={order} />
               ))}
             </div>
@@ -109,7 +127,7 @@ export default async function CustomerOrdersPage() {
   )
 }
 
-function OrderCard({ order }: { order: any }) {
+function OrderCard({ order }: { order: { id: string; status: string; total_amount: number; payment_method: string; notes: string | null; created_at: string } }) {
   const statusConfig: Record<OrderStatus, { label: string; color: string; bg: string }> = {
     pending: { label: 'Pending', color: 'text-yellow-600', bg: 'bg-yellow-100' },
     confirmed: { label: 'Confirmed', color: 'text-blue-600', bg: 'bg-blue-100' },

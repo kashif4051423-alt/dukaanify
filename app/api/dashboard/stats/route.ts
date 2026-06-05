@@ -70,12 +70,12 @@ export async function GET(request: NextRequest) {
 
     // Fetch all stats in parallel
     const [
-      { count: productCount },
-      { count: activeProductCount },
-      { count: orderCount },
-      { count: customerCount },
-      { data: allOrders },
-      { data: topItemsRaw },
+      productsResult,
+      activeProductsResult,
+      ordersCountResult,
+      customersCountResult,
+      allOrdersResult,
+      topItemsResult,
     ] = await Promise.all([
       supabase.from('products').select('*', { count: 'exact', head: true }).eq('business_id', business.id),
       supabase.from('products').select('*', { count: 'exact', head: true }).eq('business_id', business.id).eq('is_active', true),
@@ -85,10 +85,27 @@ export async function GET(request: NextRequest) {
       supabase
         .from('order_items')
         .select('product_id, quantity, products(name)')
-        .in('order_id', (allOrders ?? []).map((o: any) => o.id).slice(0, 200)),
+        .in('order_id', []), // placeholder, will be populated after allOrders is available
     ])
 
-    const orders = allOrders ?? []
+    // Extract data from results
+    const productCount = productsResult.count
+    const activeProductCount = activeProductsResult.count
+    const orderCount = ordersCountResult.count
+    const customerCount = customersCountResult.count
+    const allOrders = allOrdersResult.data ?? []
+    let topItemsRaw = topItemsResult.data ?? []
+
+    // Now fetch top items with actual order IDs
+    if (allOrders.length > 0) {
+      const { data: topItems } = await supabase
+        .from('order_items')
+        .select('product_id, quantity, products(name)')
+        .in('order_id', allOrders.map((o: any) => o.id).slice(0, 200))
+      topItemsRaw = topItems ?? []
+    }
+
+    const orders = allOrders
 
     // Calculate stats
     const totalRevenue = orders.reduce((s, o: any) => s + Number(o.total_amount), 0)
