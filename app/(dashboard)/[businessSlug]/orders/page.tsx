@@ -69,7 +69,7 @@ export default async function OrdersPage({ params, searchParams }: Props) {
   const olderOrders: any[] = orders.filter((o: any) => !o.created_at.startsWith(today))
 
   // ── Stats: Fetch all orders for stats calculation ──
-  const { data: allOrders }: any = await supabase
+  const { data: allOrders }: { data: any[] | null } = await supabase
     .from('orders')
     .select('status, total_amount, created_at')
     .eq('business_id', business.id)
