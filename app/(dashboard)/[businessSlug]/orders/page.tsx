@@ -48,31 +48,16 @@ export default async function OrdersPage({ params, searchParams }: Props) {
     query = query.eq('status', statusFilter)
   }
 
-  const { data: ordersRaw } = await query
+  const { data: ordersRaw }: any = await query
 
-  // ── Transform data for display ──
-  type RawOrder = {
-    id: string
-    status: string
-    total_amount: number
-    created_at: string
-    notes: string | null
-    customers: { name: string; email: string | null; phone: string | null; address?: string | null } | null
-    order_items: Array<{
-      quantity: number
-      unit_price: number
-      products: { name: string } | null
-    }>
-  }
-
-  const orders = (ordersRaw as unknown as RawOrder[] ?? []).map((o) => ({
+  const orders = (ordersRaw ?? []).map((o: any) => ({
     id: o.id,
     status: o.status,
     total_amount: o.total_amount,
     created_at: o.created_at,
     notes: o.notes,
     customers: o.customers,
-    items: (o.order_items ?? []).map((item) => ({
+    items: (o.order_items ?? []).map((item: any) => ({
       name: item.products?.name ?? 'Unknown product',
       quantity: item.quantity,
       unit_price: Number(item.unit_price),
@@ -80,11 +65,11 @@ export default async function OrdersPage({ params, searchParams }: Props) {
   }))
 
   // ── Separate today's orders from older orders ──
-  const todayOrders = orders.filter((o) => o.created_at.startsWith(today))
-  const olderOrders = orders.filter((o) => !o.created_at.startsWith(today))
+  const todayOrders: any[] = orders.filter((o: any) => o.created_at.startsWith(today))
+  const olderOrders: any[] = orders.filter((o: any) => !o.created_at.startsWith(today))
 
   // ── Stats: Fetch all orders for stats calculation ──
-  const { data: allOrders } = await supabase
+  const { data: allOrders }: any = await supabase
     .from('orders')
     .select('status, total_amount, created_at')
     .eq('business_id', business.id)
@@ -92,7 +77,7 @@ export default async function OrdersPage({ params, searchParams }: Props) {
   const stats = computeStats(allOrders ?? [], business.currency)
 
   // ── Stats for today only ──
-  const todayDateFilter = (allOrders ?? []).filter((o) => o.created_at.startsWith(today))
+  const todayDateFilter: any[] = (allOrders ?? []).filter((o: any) => o.created_at.startsWith(today))
   const todayStats = computeStats(todayDateFilter, business.currency)
 
   return (
@@ -109,7 +94,7 @@ export default async function OrdersPage({ params, searchParams }: Props) {
           <div className="col-span-2 lg:col-span-4">
             <h2 className="text-sm font-bold text-indigo-900 mb-3">Today's Performance</h2>
           </div>
-          {todayStats.map((s) => (
+          {todayStats.map((s: any) => (
             <div key={'today-' + s.label} className={`bg-white rounded-2xl px-5 py-4 shadow-sm border border-indigo-100`}>
               <div className="flex items-center gap-2 mb-2">
                 <span className={`w-2 h-2 rounded-full ${s.dot}`} />
@@ -124,7 +109,7 @@ export default async function OrdersPage({ params, searchParams }: Props) {
 
       {/* All-time Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {stats.map((s) => (
+        {stats.map((s: any) => (
           <div key={s.label} className={`bg-white border rounded-2xl px-5 py-4 ${s.accent ?? 'border-gray-200'}`}>
             <div className="flex items-center gap-2 mb-2">
               <span className={`w-2 h-2 rounded-full ${s.dot}`} />
@@ -149,7 +134,7 @@ export default async function OrdersPage({ params, searchParams }: Props) {
             Today's Orders ({todayOrders.length})
           </h2>
           <OrdersTable
-            orders={todayOrders as Parameters<typeof OrdersTable>[0]['orders']}
+            orders={todayOrders as any}
             businessSlug={businessSlug}
             currency={business.currency ?? 'PKR'}
           />
@@ -164,7 +149,7 @@ export default async function OrdersPage({ params, searchParams }: Props) {
             Older Orders ({olderOrders.length})
           </h2>
           <OrdersTable
-            orders={olderOrders as Parameters<typeof OrdersTable>[0]['orders']}
+            orders={olderOrders as any}
             businessSlug={businessSlug}
             currency={business.currency ?? 'PKR'}
           />
@@ -181,14 +166,14 @@ export default async function OrdersPage({ params, searchParams }: Props) {
   )
 }
 
-function computeStats(orders: Array<{ status: string; total_amount: number; created_at: string }>, currency: string) {
+function computeStats(orders: any[], currency: string) {
   const total = orders.length
   const revenue = orders
-    .filter((o) => o.status === 'delivered')
-    .reduce((s, o) => s + Number(o.total_amount), 0)
-  const pending = orders.filter((o) => o.status === 'pending').length
+    .filter((o: any) => o.status === 'delivered')
+    .reduce((s: any, o: any) => s + Number(o.total_amount), 0)
+  const pending = orders.filter((o: any) => o.status === 'pending').length
   const active = orders.filter(
-    (o) => ['confirmed', 'processing', 'shipped'].includes(o.status)
+    (o: any) => ['confirmed', 'processing', 'shipped'].includes(o.status)
   ).length
 
   return [
