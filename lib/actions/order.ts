@@ -88,41 +88,62 @@ export async function placeOrder(payload: CheckoutPayload): Promise<CheckoutResu
     0
   )
 
-  // ── Step 3: Upsert customer (optimized - single query) ────
+  // ── Step 3: Create or update customer ────
   console.log('🔄 placeOrder: Upserting customer...')
-  const { data: customer, error: customerError } = await supabase
+  
+  // First check if customer exists
+  const { data: existingCustomer } = await supabase
     .from('customers')
-    .upsert(
-      {
+    .select('id')
+    .eq('business_id', payload.businessId)
+    .eq('phone', payload.customerPhone.trim())
+    .single()
+
+  let customerId = existingCustomer?.id
+
+  if (!customerId) {
+    // Create new customer
+    const { data: newCustomer, error: customerError } = await supabase
+      .from('customers')
+      .insert({
         business_id: payload.businessId,
         phone: payload.customerPhone.trim(),
         name: payload.customerName.trim(),
         email: payload.customerEmail.trim() || null,
         address: payload.customerAddress.trim(),
-      },
-      { onConflict: 'business_id,phone' }
-    )
-    .select('id')
-    .single()
+      })
+      .select('id')
+      .single()
 
-  if (customerError) {
-    console.error('❌ Customer upsert error:', {
-      code: customerError.code,
-      message: customerError.message,
-      details: customerError.details,
-      hint: customerError.hint,
-    })
-    return { error: `Failed to save customer details: ${customerError.message}` }
+    if (customerError) {
+      console.error('❌ Customer insert error:', {
+        code: customerError.code,
+        message: customerError.message,
+        details: customerError.details,
+        hint: customerError.hint,
+      })
+      return { error: `Failed to save customer details: ${customerError.message}` }
+    }
+
+    if (!newCustomer) {
+      console.error('❌ Customer insert returned empty result')
+      return { error: 'Failed to retrieve customer details.' }
+    }
+
+    customerId = newCustomer.id
+  } else {
+    // Update existing customer
+    await supabase
+      .from('customers')
+      .update({
+        name: payload.customerName.trim(),
+        email: payload.customerEmail.trim() || null,
+        address: payload.customerAddress.trim(),
+      })
+      .eq('id', customerId)
   }
 
-  if (!customer) {
-    console.error('❌ Customer upsert returned empty result')
-    return { error: 'Failed to retrieve customer details.' }
-  }
-
-  console.log('✅ Customer upserted:', customer.id)
-
-  const customerId = customer.id
+  console.log('✅ Customer created/updated:', customerId)
 
   // ── Step 4: Create the order — business_id is mandatory ─────
   console.log('🔄 placeOrder: Creating order...')
