@@ -1,3 +1,6 @@
+'use client'
+
+import { useState } from 'react'
 import { StarIcon } from './StarIcon'
 
 const reviews = [
@@ -5,7 +8,7 @@ const reviews = [
     id: 1,
     name: 'Ali Madina Furniture',
     role: 'Store Owner',
-    content: 'Dukaanify نے ہماری فروخت 300% بڑھا دی۔ سب کچھ خود کار ہے، بہت آسان!',
+    content: 'Dukaanify increased our sales by 300%. Everything is automated and so simple to use!',
     rating: 5,
     initials: 'AM',
   },
@@ -13,7 +16,7 @@ const reviews = [
     id: 2,
     name: 'Hassan Ahmed',
     role: 'Business Manager',
-    content: 'یہ بہترین platform ہے۔ Google Sheets میں خودکار sync، orders manage کرنا بہت آسان ہے۔',
+    content: 'Best platform ever! Auto-sync with Google Sheets, managing orders is incredibly easy.',
     rating: 5,
     initials: 'HA',
   },
@@ -21,32 +24,59 @@ const reviews = [
     id: 3,
     name: 'Fatima Khan',
     role: 'E-commerce Owner',
-    content: 'سب سے بہترین feature - WhatsApp integration! میرے customers براہ راست WhatsApp کے ذریعے آرڈر دے سکتے ہیں۔',
+    content: 'The WhatsApp integration is a game changer! Customers can order directly through WhatsApp now.',
     rating: 5,
     initials: 'FK',
+  },
+  {
+    id: 4,
+    name: 'Muhammad Khan',
+    role: 'Electronics Seller',
+    content: 'Customer support is amazing. They helped me set everything up in minutes!',
+    rating: 5,
+    initials: 'MK',
+  },
+  {
+    id: 5,
+    name: 'Sarah Ahmed',
+    role: 'Fashion Boutique Owner',
+    content: 'The inventory management feature saved me so much time. Highly recommended!',
+    rating: 5,
+    initials: 'SA',
+  },
+  {
+    id: 6,
+    name: 'Rashid Hassan',
+    role: 'Restaurant Owner',
+    content: 'Orders are organized so well. Delivery tracking makes everything transparent.',
+    rating: 5,
+    initials: 'RH',
   },
 ]
 
 export function ReviewsSection() {
+  const [expandedId, setExpandedId] = useState<number | null>(null)
+
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white via-indigo-50/30 to-white">
+    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white" id="reviews">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
-            ہمارے گاہکوں کو کیا پسند ہے
+            What Our Customers Say
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            ہزاروں کامیاب کاروباری افراد نے Dukaanify کو اپنا اعتماد دیا ہے
+            Join thousands of successful business owners who trust Dukaanify
           </p>
         </div>
 
         {/* Reviews Grid */}
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-6 mb-16">
           {reviews.map((review) => (
-            <div
+            <button
               key={review.id}
-              className="bg-white rounded-2xl p-8 border border-gray-200 hover:border-indigo-300 shadow-sm hover:shadow-lg transition-all duration-300"
+              onClick={() => setExpandedId(expandedId === review.id ? null : review.id)}
+              className="text-left bg-white rounded-2xl p-6 border border-gray-200 hover:border-indigo-400 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95"
             >
               {/* Rating */}
               <div className="flex gap-1 mb-4">
@@ -56,38 +86,55 @@ export function ReviewsSection() {
               </div>
 
               {/* Comment */}
-              <p className="text-gray-700 mb-6 leading-relaxed text-right" dir="rtl">
+              <p className={`mb-6 leading-relaxed transition-all duration-300 ${
+                expandedId === review.id 
+                  ? 'text-gray-700 line-clamp-none' 
+                  : 'text-gray-600 line-clamp-3'
+              }`}>
                 "{review.content}"
               </p>
 
               {/* Author */}
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold shrink-0">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold shrink-0 text-sm">
                   {review.initials}
                 </div>
-                <div>
-                  <p className="font-semibold text-gray-900">{review.name}</p>
-                  <p className="text-sm text-gray-500">{review.role}</p>
+                <div className="min-w-0">
+                  <p className="font-semibold text-gray-900 truncate">{review.name}</p>
+                  <p className="text-xs text-gray-500 truncate">{review.role}</p>
                 </div>
               </div>
-            </div>
+
+              {/* Expand indicator */}
+              <div className="mt-3 text-xs text-indigo-600 font-medium">
+                {expandedId === review.id ? '← Click to collapse' : 'Click to read more →'}
+              </div>
+            </button>
           ))}
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-8 mt-16 pt-16 border-t border-gray-200">
-          <div className="text-center">
-            <p className="text-4xl font-bold text-indigo-600 mb-2">5000+</p>
-            <p className="text-gray-600">خوش دکاندار</p>
-          </div>
-          <div className="text-center">
-            <p className="text-4xl font-bold text-indigo-600 mb-2">500K+</p>
-            <p className="text-gray-600">کل آرڈرز</p>
-          </div>
-          <div className="text-center">
-            <p className="text-4xl font-bold text-indigo-600 mb-2">PKR 10B+</p>
-            <p className="text-gray-600">کل سیلز</p>
-          </div>
+        {/* Stats - Clickable Cards */}
+        <div className="grid grid-cols-3 gap-6 pt-12 border-t border-gray-200">
+          {[
+            { label: 'Happy Clients', value: '50+', icon: '👥' },
+            { label: 'Total Orders', value: '10K+', icon: '📦' },
+            { label: 'Total Sales', value: 'PKR 10K+', icon: '💰' },
+          ].map((stat, idx) => (
+            <button
+              key={idx}
+              className="text-center p-6 rounded-2xl border border-gray-200 bg-gradient-to-br from-indigo-50 to-white hover:from-indigo-100 hover:to-indigo-50 transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95 group"
+            >
+              <div className="text-4xl mb-2 group-hover:scale-125 transition-transform duration-300">
+                {stat.icon}
+              </div>
+              <p className="text-4xl font-bold text-indigo-600 mb-2 group-hover:text-indigo-700">
+                {stat.value}
+              </p>
+              <p className="text-gray-600 font-medium group-hover:text-gray-900">
+                {stat.label}
+              </p>
+            </button>
+          ))}
         </div>
       </div>
     </section>
