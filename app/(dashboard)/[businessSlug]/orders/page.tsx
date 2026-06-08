@@ -1,6 +1,7 @@
 // fixed
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
+import { Suspense } from 'react'
 import { OrdersTable } from '@/components/orders/OrdersTable'
 import { OrderFilters } from '@/components/orders/OrderFilters'
 import { formatCurrency } from '@/lib/utils/format'
@@ -116,7 +117,9 @@ export default async function OrdersPage({ params, searchParams }: Props) {
       </div>
 
       <div className="mb-4">
-        <OrderFilters total={allOrders?.length ?? 0} />
+        <Suspense fallback={<div className="h-10 bg-gray-100 rounded-lg animate-pulse" />}>
+          <OrderFilters total={allOrders?.length ?? 0} />
+        </Suspense>
       </div>
 
       {todayOrders.length > 0 && (

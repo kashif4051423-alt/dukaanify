@@ -24,6 +24,26 @@ interface CreateOrderInput {
   notes?: string
 }
 
+interface OrderWithRelations {
+  id: string
+  business_id: string
+  customer_id?: string
+  total_amount: number
+  status: string
+  created_at: string
+  updated_at?: string
+  notes?: string
+  customers: {
+    name: string
+    email?: string
+    phone?: string
+  } | null
+  businesses: {
+    owner_id: string
+    currency: string
+  }
+}
+
 interface CreateOrderResponse {
   success: boolean
   order_id?: string
@@ -126,7 +146,7 @@ export async function createOrderWithGoogleSheetsSync(
 
     // Sync to Google Sheets asynchronously (don't wait for it)
     // This ensures the order is created even if Google Sheets fails
-    syncOrderToGoogleSheets(order, business.owner_id, business.currency).catch((error) => {
+    syncOrderToGoogleSheets(order as unknown as OrderWithRelations, business.owner_id, business.currency).catch((error) => {
       console.error('Background Google Sheets sync failed', error)
       // Don't throw - we don't want to break the order creation
     })
@@ -153,18 +173,22 @@ export async function createOrderWithGoogleSheetsSync(
  * Called asynchronously after order creation
  */
 async function syncOrderToGoogleSheets(
-  order: any,
+  order: OrderWithRelations,
   tenantId: string,
   currency: string,
-  customerInfo?: any
+  customerInfo?: { name: string; email?: string; phone?: string } | null
 ): Promise<void> {
   try {
+    const validStatus = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'].includes(order.status)
+      ? (order.status as 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled')
+      : 'pending'
+
     const result = await sendOrderToGoogleSheetWithRetry(
       {
         order_id: order.id,
         customer_name: customerInfo?.name || 'Unknown',
         total: order.total_amount,
-        status: order.status,
+        status: validStatus,
         created_at: order.created_at,
         currency: currency,
         customer_email: customerInfo?.email,
@@ -197,18 +221,20 @@ export async function updateOrderStatusWithGoogleSheetsSync(
     const supabase = await createClient()
 
     // Get the order with customer and business info
-    const { data: order, error: fetchError } = await supabase
+    const { data: orderData, error: fetchError } = await supabase
       .from('orders')
       .select('*, customers(name, email, phone), businesses(owner_id, currency)')
       .eq('id', orderId)
       .single()
 
-    if (fetchError || !order) {
+    if (fetchError || !orderData) {
       return {
         success: false,
         error: 'Order not found',
       }
     }
+
+    const order = orderData as unknown as OrderWithRelations
 
     // Update order status
     const { error: updateError } = await supabase
@@ -259,26 +285,32 @@ export async function manuallyRetryGoogleSheetsSync(orderId: string): Promise<Cr
     const supabase = await createClient()
 
     // Get the order with customer and business info
-    const { data: order, error: fetchError } = await supabase
+    const { data: orderData, error: fetchError } = await supabase
       .from('orders')
       .select('*, customers(name, email, phone), businesses(owner_id, currency)')
       .eq('id', orderId)
       .single()
 
-    if (fetchError || !order) {
+    if (fetchError || !orderData) {
       return {
         success: false,
         error: 'Order not found',
       }
     }
 
+    const order = orderData as unknown as OrderWithRelations
+
     // Sync to Google Sheets
+    const validStatus = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'].includes(order.status)
+      ? (order.status as 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled')
+      : 'pending'
+
     const result = await sendOrderToGoogleSheetWithRetry(
       {
         order_id: order.id,
         customer_name: order.customers?.name || 'Unknown',
         total: order.total_amount,
-        status: order.status,
+        status: validStatus,
         created_at: order.created_at,
         currency: order.businesses.currency,
         customer_email: order.customers?.email,

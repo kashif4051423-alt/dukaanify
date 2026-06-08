@@ -126,7 +126,7 @@ export async function placeOrder(payload: CheckoutPayload): Promise<CheckoutResu
 
   // ── Step 4: Create the order — business_id is mandatory ─────
   console.log('🔄 placeOrder: Creating order...')
-  const { data: order, error: orderError } = await supabase
+  const { data: order, error: orderError } = await (supabase as any)
     .from('orders')
     .insert({
       business_id:    payload.businessId,   // ← THIS store's ID (from checkout payload)

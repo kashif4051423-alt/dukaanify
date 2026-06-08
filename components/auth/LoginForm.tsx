@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-export function LoginForm() {
+export function LoginFormContent() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -164,3 +164,6 @@ function SpinnerIcon({ className }: { className?: string }) {
     </svg>
   )
 }
+
+// Backward compatibility
+export const LoginForm = LoginFormContent

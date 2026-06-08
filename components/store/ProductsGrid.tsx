@@ -24,14 +24,16 @@ export function ProductsGrid({
   onQuickView,
 }: Props) {
   const [page, setPage] = useState(1)
+  const pageSize = 12
   const { data, isLoading, error } = useProducts({
     businessId,
     page,
-    pageSize: 12,
+    pageSize,
   })
 
   const products = data?.products || []
-  const totalPages = data?.totalPages || 1
+  const total = data?.total || 0
+  const totalPages = Math.ceil(total / pageSize) || 1
 
   if (error) {
     return (
