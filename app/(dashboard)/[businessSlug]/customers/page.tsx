@@ -28,16 +28,16 @@ export default async function CustomersPage({ params }: Props) {
     .eq('business_id', business.id)
     .order('created_at', { ascending: false })
 
-  // Get order counts per customer
-  const { data: orderCounts } = await supabase
+  // Get all order customer_ids and count them in JavaScript
+  const { data: orderCountsRaw } = await supabase
     .from('orders')
-    .select('customer_id, count')
+    .select('customer_id')
     .eq('business_id', business.id)
-    .groupBy('customer_id')
 
+  // Count orders per customer
   const orderCountMap: Record<string, number> = {}
-  orderCounts?.forEach((oc: any) => {
-    orderCountMap[oc.customer_id] = oc.count || 0
+  orderCountsRaw?.forEach((o: any) => {
+    orderCountMap[o.customer_id] = (orderCountMap[o.customer_id] || 0) + 1
   })
 
   return (
