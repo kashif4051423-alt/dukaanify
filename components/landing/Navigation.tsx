@@ -12,8 +12,10 @@ export function Navigation() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/#hero" className="flex items-center gap-2.5 group scroll-smooth">
-            <img src="/images/dukannify logo.png" alt="Dukaanify" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300 cursor-pointer" />
-            <span className="font-bold text-[#F9FAFB] text-xl tracking-tight group-hover:text-[#A78BFA] transition-colors duration-300 cursor-pointer">Dukaanify</span>
+            <img src="/logo.svg" alt="Dukaanify" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300 cursor-pointer" />
+            <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 text-xl tracking-tight group-hover:scale-105 transition-transform duration-300 cursor-pointer">
+              Dukaanify
+            </span>
           </Link>
 
           {/* Desktop nav */}

@@ -130,7 +130,7 @@ export function ProductForm({ businessId, product, onSuccess, onCancel }: Props)
           autoFocus
           autoComplete="off"
           placeholder="e.g. Basmati Rice 5kg"
-          className={`w-full border rounded-lg px-3.5 py-2.5 text-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition ${
+          className={`w-full border rounded-lg px-3.5 py-2.5 text-sm bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition ${
             state.fieldErrors?.name ? 'border-red-400' : 'border-gray-300'
           }`}
         />
@@ -150,7 +150,7 @@ export function ProductForm({ businessId, product, onSuccess, onCancel }: Props)
           rows={2}
           defaultValue={product?.description ?? ''}
           placeholder="Short product description..."
-          className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition resize-none"
+          className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition resize-none"
         />
       </div>
 
@@ -173,7 +173,7 @@ export function ProductForm({ businessId, product, onSuccess, onCancel }: Props)
               defaultValue={product?.price}
               required
               placeholder="0"
-              className={`w-full border rounded-lg pl-9 pr-3.5 py-2.5 text-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition ${
+              className={`w-full border rounded-lg pl-9 pr-3.5 py-2.5 text-sm bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition ${
                 state.fieldErrors?.price ? 'border-red-400' : 'border-gray-300'
               }`}
             />
@@ -194,7 +194,7 @@ export function ProductForm({ businessId, product, onSuccess, onCancel }: Props)
             min="0"
             defaultValue={product?.stock_quantity ?? 0}
             placeholder="0"
-            className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+            className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
           />
         </div>
       </div>
