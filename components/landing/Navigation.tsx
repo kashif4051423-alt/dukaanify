@@ -13,9 +13,7 @@ export function Navigation() {
           {/* Logo */}
           <Link href="/#hero" className="flex items-center gap-2.5 group scroll-smooth">
             <img src="/logo.svg" alt="Dukaanify" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300 cursor-pointer" />
-            <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 text-xl tracking-tight group-hover:scale-105 transition-transform duration-300 cursor-pointer">
-              Dukaanify
-            </span>
+            <span className="font-bold text-white text-xl tracking-tight group-hover:text-indigo-300 transition-colors duration-300 cursor-pointer">Dukaanify</span>
           </Link>
 
           {/* Desktop nav */}

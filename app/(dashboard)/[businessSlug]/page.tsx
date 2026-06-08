@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
-import { RevenueChart } from '@/components/analytics/RevenueChart'
+import { InteractiveRevenueChart } from '@/components/analytics/InteractiveRevenueChart'
 import { OrderStatusChart } from '@/components/analytics/OrderStatusChart'
 
 interface Props {
@@ -190,13 +190,13 @@ export default async function BusinessOverviewPage({ params }: Props) {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="font-semibold text-gray-900">Revenue (Last 7 Days)</h2>
-              <p className="text-xs text-gray-400 mt-0.5">Daily order totals</p>
+              <p className="text-xs text-gray-400 mt-0.5">Click on any day to see details</p>
             </div>
             <span className="text-sm font-bold text-emerald-600">
               {formatCurrency(last7.reduce((s, d) => s + d.revenue, 0), currency)}
             </span>
           </div>
-          <RevenueChart data={last7} currency={currency} />
+          <InteractiveRevenueChart data={last7} currency={currency} />
         </div>
 
         {/* Order status donut — 1 col */}
