@@ -99,10 +99,10 @@ export default async function BusinessOverviewPage({ params }: Props) {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="p-3 sm:p-6 max-w-6xl mx-auto space-y-6">
 
       {/* ── Business header ─────────────────────────────── */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
         <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-gray-200">
           {business.logo_url ? (
             <Image src={business.logo_url} alt={business.name} fill className="object-cover" sizes="48px" />
@@ -116,18 +116,18 @@ export default async function BusinessOverviewPage({ params }: Props) {
           <h1 className="text-xl font-bold text-white">{business.name}</h1>
           <p className="text-xs text-gray-400 mt-0.5">/{business.slug} · Since {formatDate(business.created_at)}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <a
             href={`/store/${business.slug}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-indigo-600 border border-indigo-200 rounded-lg px-3 py-1.5 hover:bg-indigo-50 transition-colors font-medium"
+            className="text-xs text-indigo-600 border border-indigo-200 rounded-lg px-3 py-1.5 hover:bg-indigo-50 transition-colors font-medium whitespace-nowrap"
           >
             View Store ↗
           </a>
           <Link
             href={`/${businessSlug}/settings`}
-            className="text-xs text-gray-500 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors"
+            className="text-xs text-gray-500 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors whitespace-nowrap"
           >
             Settings
           </Link>
@@ -135,7 +135,7 @@ export default async function BusinessOverviewPage({ params }: Props) {
       </div>
 
       {/* ── KPI stat cards ──────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           label="Total Revenue"
           value={formatCurrency(totalRevenue, currency)}
@@ -186,13 +186,13 @@ export default async function BusinessOverviewPage({ params }: Props) {
       {/* ── Revenue + Status charts ──────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Revenue bar chart — 2 cols */}
-        <div className="lg:col-span-2 bg-white border border-gray-200 rounded-2xl p-5">
-          <div className="flex items-center justify-between mb-4">
+        <div className="lg:col-span-2 bg-white border border-gray-200 rounded-2xl p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
             <div>
-              <h2 className="font-semibold text-gray-900">Revenue (Last 7 Days)</h2>
+              <h2 className="font-semibold text-gray-900 text-sm sm:text-base">Revenue (Last 7 Days)</h2>
               <p className="text-xs text-gray-400 mt-0.5">Click on any day to see details</p>
             </div>
-            <span className="text-sm font-bold text-emerald-600">
+            <span className="text-sm font-bold text-emerald-600 shrink-0">
               {formatCurrency(last7.reduce((s, d) => s + d.revenue, 0), currency)}
             </span>
           </div>
@@ -200,9 +200,9 @@ export default async function BusinessOverviewPage({ params }: Props) {
         </div>
 
         {/* Order status donut — 1 col */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-5">
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5">
           <div className="mb-4">
-            <h2 className="font-semibold text-gray-900">Order Status</h2>
+            <h2 className="font-semibold text-gray-900 text-sm sm:text-base">Order Status</h2>
             <p className="text-xs text-gray-400 mt-0.5">All time breakdown</p>
           </div>
           <OrderStatusChart counts={statusCounts} total={orderCount ?? 0} />
@@ -213,8 +213,8 @@ export default async function BusinessOverviewPage({ params }: Props) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
         {/* Revenue breakdown */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-5">
-          <h2 className="font-semibold text-gray-900 mb-4">Revenue Breakdown</h2>
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5">
+          <h2 className="font-semibold text-gray-900 mb-4 text-sm sm:text-base">Revenue Breakdown</h2>
           <div className="space-y-3">
             <RevenueRow label="Total (all orders)" value={formatCurrency(totalRevenue, currency)} color="bg-gray-200" pct={100} />
             <RevenueRow label="Delivered (earned)" value={formatCurrency(deliveredRevenue, currency)} color="bg-emerald-500" pct={totalRevenue > 0 ? (deliveredRevenue / totalRevenue) * 100 : 0} />
@@ -224,12 +224,12 @@ export default async function BusinessOverviewPage({ params }: Props) {
         </div>
 
         {/* Top products */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-5">
-          <h2 className="font-semibold text-gray-900 mb-4">Top Products</h2>
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5">
+          <h2 className="font-semibold text-gray-900 mb-4 text-sm sm:text-base">Top Products</h2>
           {topProducts.length > 0 ? (
             <div className="space-y-3">
               {topProducts.slice(0, 5).map((p, i) => (
-                <div key={p.name} className="flex items-center gap-3">
+                <div key={p.name} className="flex items-center gap-3 min-w-0">
                   <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center shrink-0">
                     {i + 1}
                   </span>
@@ -242,7 +242,7 @@ export default async function BusinessOverviewPage({ params }: Props) {
                       />
                     </div>
                   </div>
-                  <span className="text-xs font-semibold text-gray-500 shrink-0">{p.qty} sold</span>
+                  <span className="text-xs font-semibold text-gray-500 shrink-0 whitespace-nowrap">{p.qty} sold</span>
                 </div>
               ))}
             </div>
@@ -254,24 +254,24 @@ export default async function BusinessOverviewPage({ params }: Props) {
 
       {/* ── Recent orders ────────────────────────────────── */}
       <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-900">Recent Orders</h2>
-          <Link href={`/${businessSlug}/orders`} className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 sm:px-5 py-4 border-b border-gray-100 gap-2">
+          <h2 className="font-semibold text-gray-900 text-sm sm:text-base">Recent Orders</h2>
+          <Link href={`/${businessSlug}/orders`} className="text-sm text-indigo-600 hover:text-indigo-700 font-medium whitespace-nowrap">
             View all →
           </Link>
         </div>
 
         {recentOrders.length > 0 ? (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-gray-50 overflow-x-auto">
             {recentOrders.map((order) => (
               <Link
                 key={order.id}
                 href={`/${businessSlug}/orders/${order.id}`}
-                className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-3.5 hover:bg-gray-50 transition-colors gap-2"
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                    <span className="text-xs font-bold text-gray-500">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 text-xs">
+                    <span className="font-bold text-gray-500">
                       {(order.customers?.name?.[0] ?? '#').toUpperCase()}
                     </span>
                   </div>
@@ -279,14 +279,14 @@ export default async function BusinessOverviewPage({ params }: Props) {
                     <p className="text-sm font-medium text-gray-900 truncate">
                       {order.customers?.name ?? 'Guest'}
                     </p>
-                    <p className="text-xs text-gray-400">{formatDate(order.created_at)}</p>
+                    <p className="text-xs text-gray-400 truncate">{formatDate(order.created_at)}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
+                <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                   <span className={`text-xs px-2 py-0.5 rounded-full font-semibold border capitalize ${statusColors[order.status] ?? 'bg-gray-100 text-gray-600 border-gray-200'}`}>
                     {order.status}
                   </span>
-                  <span className="text-sm font-bold text-gray-900">
+                  <span className="text-sm font-bold text-gray-900 whitespace-nowrap">
                     {formatCurrency(Number(order.total_amount), currency)}
                   </span>
                 </div>
@@ -294,7 +294,7 @@ export default async function BusinessOverviewPage({ params }: Props) {
             ))}
           </div>
         ) : (
-          <div className="px-5 py-12 text-center">
+          <div className="px-4 sm:px-5 py-12 text-center">
             <p className="text-sm text-gray-400">No orders yet. Share your store link to start receiving orders.</p>
           </div>
         )}

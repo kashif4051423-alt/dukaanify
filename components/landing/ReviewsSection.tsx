@@ -58,14 +58,14 @@ export function ReviewsSection() {
   const [expandedId, setExpandedId] = useState<number | null>(null)
 
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white" id="reviews">
+    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-[#0b0f19]" id="reviews">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
+          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4">
             What Our Customers Say
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
             Join thousands of successful business owners who trust Dukaanify
           </p>
         </div>
@@ -76,7 +76,7 @@ export function ReviewsSection() {
             <button
               key={review.id}
               onClick={() => setExpandedId(expandedId === review.id ? null : review.id)}
-              className="text-left bg-white rounded-2xl p-6 border border-gray-200 hover:border-indigo-400 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95"
+              className="text-left bg-[#111827] rounded-2xl p-6 border border-[#1f2937] hover:border-indigo-500 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95"
             >
               {/* Rating */}
               <div className="flex gap-1 mb-4">
@@ -88,8 +88,8 @@ export function ReviewsSection() {
               {/* Comment */}
               <p className={`mb-6 leading-relaxed transition-all duration-300 ${
                 expandedId === review.id 
-                  ? 'text-gray-700 line-clamp-none' 
-                  : 'text-gray-600 line-clamp-3'
+                  ? 'text-gray-200 line-clamp-none' 
+                  : 'text-gray-400 line-clamp-3'
               }`}>
                 "{review.content}"
               </p>
@@ -100,13 +100,13 @@ export function ReviewsSection() {
                   {review.initials}
                 </div>
                 <div className="min-w-0">
-                  <p className="font-semibold text-gray-900 truncate">{review.name}</p>
+                  <p className="font-semibold text-white truncate">{review.name}</p>
                   <p className="text-xs text-gray-500 truncate">{review.role}</p>
                 </div>
               </div>
 
               {/* Expand indicator */}
-              <div className="mt-3 text-xs text-indigo-600 font-medium">
+              <div className="mt-3 text-xs text-indigo-400 font-medium">
                 {expandedId === review.id ? '← Click to collapse' : 'Click to read more →'}
               </div>
             </button>
@@ -114,7 +114,7 @@ export function ReviewsSection() {
         </div>
 
         {/* Stats - Clickable Cards */}
-        <div className="grid grid-cols-3 gap-6 pt-12 border-t border-gray-200">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-12 border-t border-[#1f2937]">
           {[
             { label: 'Happy Clients', value: '50+', icon: '👥' },
             { label: 'Total Orders', value: '10K+', icon: '📦' },
@@ -122,15 +122,15 @@ export function ReviewsSection() {
           ].map((stat, idx) => (
             <button
               key={idx}
-              className="text-center p-6 rounded-2xl border border-gray-200 bg-gradient-to-br from-indigo-50 to-white hover:from-indigo-100 hover:to-indigo-50 transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95 group"
+              className="text-center p-6 rounded-2xl border border-[#1f2937] bg-gradient-to-br from-[#111827] to-[#0b0f19] hover:from-indigo-950/30 hover:to-indigo-900/20 transition-all duration-300 cursor-pointer transform hover:scale-105 active:scale-95 group"
             >
               <div className="text-4xl mb-2 group-hover:scale-125 transition-transform duration-300">
                 {stat.icon}
               </div>
-              <p className="text-4xl font-bold text-indigo-600 mb-2 group-hover:text-indigo-700">
+              <p className="text-4xl font-bold text-indigo-400 mb-2 group-hover:text-indigo-300">
                 {stat.value}
               </p>
-              <p className="text-gray-600 font-medium group-hover:text-gray-900">
+              <p className="text-gray-400 font-medium group-hover:text-gray-300">
                 {stat.label}
               </p>
             </button>
