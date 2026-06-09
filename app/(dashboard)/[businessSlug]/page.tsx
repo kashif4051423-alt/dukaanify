@@ -113,7 +113,7 @@ export default async function BusinessOverviewPage({ params }: Props) {
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-bold text-gray-900">{business.name}</h1>
+          <h1 className="text-xl font-bold text-white">{business.name}</h1>
           <p className="text-xs text-gray-400 mt-0.5">/{business.slug} · Since {formatDate(business.created_at)}</p>
         </div>
         <div className="flex items-center gap-2">

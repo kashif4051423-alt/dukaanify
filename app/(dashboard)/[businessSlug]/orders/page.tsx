@@ -81,14 +81,14 @@ export default async function OrdersPage({ params, searchParams }: Props) {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
-        <p className="text-sm text-gray-500 mt-1">Manage and track all customer orders</p>
+        <h1 className="text-2xl font-bold text-white">Orders</h1>
+        <p className="text-sm text-gray-400 mt-1">Manage and track all customer orders</p>
       </div>
 
       {todayOrders.length > 0 && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-2xl p-6">
           <div className="col-span-2 lg:col-span-4">
-            <h2 className="text-sm font-bold text-indigo-900 mb-3">Today's Performance</h2>
+            <h2 className="text-sm font-bold text-white mb-3">Today's Performance</h2>
           </div>
           {todayStats.map((s: any) => (
             <div key={'today-' + s.label} className="bg-white rounded-2xl px-5 py-4 shadow-sm border border-indigo-100">
@@ -124,7 +124,7 @@ export default async function OrdersPage({ params, searchParams }: Props) {
 
       {todayOrders.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Today's Orders ({todayOrders.length})</h2>
+          <h2 className="text-lg font-bold text-white mb-4">Today's Orders ({todayOrders.length})</h2>
           <OrdersTable
             orders={todayOrders as any}
             businessSlug={businessSlug}
@@ -135,7 +135,7 @@ export default async function OrdersPage({ params, searchParams }: Props) {
 
       {olderOrders.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Older Orders ({olderOrders.length})</h2>
+          <h2 className="text-lg font-bold text-white mb-4">Older Orders ({olderOrders.length})</h2>
           <OrdersTable
             orders={olderOrders as any}
             businessSlug={businessSlug}

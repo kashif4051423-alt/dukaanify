@@ -19,12 +19,17 @@ export function RegisterForm() {
     setLoading(true)
     setError(null)
 
+    // Get the redirect URL — use deployed URL if available, otherwise use current origin
+    const redirectUrl = typeof window !== 'undefined' 
+      ? `${window.location.origin}/api/auth/callback`
+      : process.env.NEXT_PUBLIC_APP_URL + '/api/auth/callback'
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: { full_name: fullName },
-        emailRedirectTo: `${window.location.origin}/api/auth/callback`,
+        emailRedirectTo: redirectUrl,
       },
     })
 

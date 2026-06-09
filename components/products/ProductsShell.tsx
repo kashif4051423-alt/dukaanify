@@ -39,8 +39,8 @@ export function ProductsShell({ products, businessId, businessSlug, currency }: 
       {/* Page header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-white">Products</h1>
+          <p className="text-sm text-gray-400 mt-1">
             {products.length === 0
               ? 'Add your first product to start selling'
               : `${products.length} total · ${activeCount} active · ${outOfStock} out of stock`}
